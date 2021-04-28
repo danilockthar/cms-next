@@ -6,8 +6,12 @@ export const ContextProvider = (props) => {
   const [faunaUser, setFaunaUser] = useState({ userId: "", role: "" });
   const router = useRouter();
 
-  const refreshData = () => {
-    router.replace(router.asPath);
+  const refreshData = (route) => {
+    if (route) {
+      router.replace(router.route.replace("[slug]", route));
+    } else {
+      router.replace(router.asPath);
+    }
   };
 
   return (

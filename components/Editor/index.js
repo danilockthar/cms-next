@@ -1,15 +1,22 @@
+import { gql } from "graphql-request";
+import { useSession } from "next-auth/client";
 import { useState, useRef, useContext } from "react";
 import EditorJs from "react-editor-js";
 import { ContextState } from "../../context/global";
 import { createOnePost } from "../../graphql/api";
 import { EDITOR_JS_TOOLS } from "../../lib/editor";
+import { getDateNow } from "../../lib/getDateNow";
+import { graphQLClient } from "../../lib/graphql-client";
+import { slugify } from "../../lib/slugify";
 import styles from "./style.module.scss";
 
-const EditorJS = ({ content, title, excerpt }) => {
+const EditorJS = ({ idpost, content, title, excerpt }) => {
+  console.log(content, title);
+  const [session] = useSession();
   const { faunaUser, setFaunaUser, refreshData } = useContext(ContextState);
   const [inputs, setInputs] = useState({
     title: title ?? "",
-    excerpt: excerpt ?? "",
+    excerpt: excerpt ?? "description",
   });
   const [isLoading, setIsLoading] = useState(false);
   const editorRef = useRef(null);
@@ -19,7 +26,7 @@ const EditorJS = ({ content, title, excerpt }) => {
     contenido = {
       time: 1556098174501,
       blocks: content,
-      version: "2.12.4",
+      version: "2.20.1",
     };
   } else {
     contenido = {
@@ -55,6 +62,29 @@ const EditorJS = ({ content, title, excerpt }) => {
     setIsLoading(true);
     const savedData = await editorRef.current.save();
     let tags = [{ tag: "testing" }, { tag: "webapp" }];
+    fetch("/api/create/", {
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session?.token}`,
+      },
+      method: "POST",
+      body: JSON.stringify({
+        title: inputs.title,
+        excerpt: inputs.excerpt,
+        contenido: savedData.blocks,
+        tags,
+      }),
+    })
+      .then((output) => {
+        setInputs({ title: "", excerpt: "" });
+        editorRef.current.blocks.clear();
+      })
+      .catch((err) => console.log(err))
+      .finally(setIsLoading(false));
+
+    return;
+
     createOnePost(
       inputs.title,
       inputs.excerpt,
@@ -74,19 +104,86 @@ const EditorJS = ({ content, title, excerpt }) => {
         setIsLoading(false);
       });
   };
+
+  const savePost = async () => {
+    if (inputs.title.length === 0 || inputs.excerpt.length === 0) {
+      return;
+    }
+    setIsLoading(true);
+    const savedData = await editorRef.current.save();
+    const mutation = gql`
+      mutation updateOnePostByID(
+        $idpost: ID!
+        $title: String!
+        $excerpt: String!
+        $contenido: [BlocksInput]
+        $slug: String!
+        $updated_at: Date
+      ) {
+        updatePost(
+          id: $idpost
+          data: {
+            title: $title
+            excerpt: $excerpt
+            slug: $slug
+            content: $contenido
+            updated_at: $updated_at
+          }
+        ) {
+          _id
+        }
+      }
+    `;
+    const variables = {
+      idpost,
+      title: inputs.title,
+      excerpt: inputs.excerpt,
+      contenido: savedData.blocks,
+      slug: slugify(inputs.title),
+      updated_at: getDateNow(),
+    };
+
+    graphQLClient
+      .request(mutation, variables)
+      .then((output) => {
+        console.log(output, "output");
+      })
+      .catch((err) => {
+        console.log(err, "err");
+      })
+      .finally(() => {
+        setIsLoading(false);
+        // if (inputs.title !== title) {
+        //   refreshData(slugify(inputs.title));
+        // }
+      });
+  };
+
   return (
     <div className={styles.editorWrapper}>
-      <button onClick={submit}> Publicar </button>
+      {content ? (
+        <button className={styles.saveBtn} onClick={savePost}>
+          {" "}
+          Guardar{" "}
+        </button>
+      ) : (
+        <button className={styles.publishBtn} onClick={submit}>
+          {" "}
+          Publicar{" "}
+        </button>
+      )}
+      <label> Title</label>
       <input
         name="title"
         value={inputs.title}
         onChange={(e) => handleInputs(e)}
       />
-      <textarea
+      {/* <textarea
         name="excerpt"
         value={inputs.excerpt}
         onChange={(e) => handleInputs(e)}
-      />
+      /> */}
+      <label>Content</label>
       <div className={styles.wrappEditor}>
         <EditorJs
           tools={EDITOR_JS_TOOLS}

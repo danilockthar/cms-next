@@ -5,6 +5,7 @@ import { createAnUser } from "../../../graphql/api";
 import { graphQLClient } from "../../../lib/graphql-client";
 import { useContext } from "react";
 import { ContextProvider, ContextState } from "../../../context/global";
+import { gql } from "graphql-request";
 
 // For more information on each option (and a full list of options) go to
 // https://next-auth.js.org/configuration/options
@@ -21,7 +22,6 @@ export default NextAuth({
   session: {
     jwt: true,
   },
-
   jwt: {
     // A secret to use for key generation (you should set this explicitly)
     secret: process.env.SECRET,
@@ -30,10 +30,13 @@ export default NextAuth({
     // You can define your own encode/decode functions for signing and encryption
     // if you want to override the default behaviour.
     encode: async ({ secret, token, maxAge }) => {
+      console.log(token, "tknee");
       const jwtClaims = {
         sub: token.sub.toString(),
         name: token.name,
         email: token.email,
+        id: token.id,
+        picture: token.picture,
         role: "AUTHOR",
         iat: Date.now() / 1000,
         exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60,
@@ -65,8 +68,12 @@ export default NextAuth({
       return Promise.resolve(session);
     },
     async signIn(user, account, profile) {
-      const validEmails = "danilockthar@gmail.com";
-      if (user.email === validEmails) {
+      const validEmails = [
+        "danilockthar@gmail.com",
+        "franmoreyra88@gmail.com",
+        "dinerapp20@gmail.com",
+      ]; /*franmoreyra88@gmail.com*/
+      if (validEmails.includes(user.email)) {
         return true;
       } else {
         return "/";
@@ -84,14 +91,38 @@ export default NextAuth({
     async jwt(token, user, account, profile, isNewUser) {
       const isUserSignedIn = user ? true : false;
       // make a http call to our graphql api
-      // store this in postgres
-
       if (isUserSignedIn) {
-        await createAnUser(user.email, user.name, user.id.toString());
+        const response = await createAnUser(
+          user.email,
+          user.name,
+          user.id.toString()
+        );
 
-        token.id = user.id.toString();
+        if (response.data?.data?.createUser?._id) {
+          token.id = response.data.data.createUser._id;
+        } else {
+          const query = gql`
+            query getUserByAuthID($authId: String!) {
+              userByAuthId(authId: $authId) {
+                _id
+                name
+                email
+              }
+            }
+          `;
+          const variables = {
+            authId: user.id.toString(),
+          };
+
+          const resp = await graphQLClient.request(query, variables);
+          if (resp.userByAuthId?._id !== null) {
+            token.id = resp.userByAuthId._id;
+          }
+        }
+
+        // token.id = user.id.toString();
       }
-
+      // token.url = user.image;
       return Promise.resolve(token);
     },
   },

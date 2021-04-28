@@ -47,6 +47,8 @@ enum Role {
 }
 type Query {
    allUsers: [User!]
+   allPosts: [Post!]
+   userByEmail(email: String!):User
    userByAuthId(authId: String!):User
    postBySlug(slug: String!): Post
 }

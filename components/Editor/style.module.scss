@@ -4,10 +4,12 @@
   position: relative;
   .wrappEditor {
     width: 50vw;
-
+    border: 1px solid #c3cfd5;
+    border-radius: 5px;
     background: white;
+    color: #536171;
   }
-  button {
+  .saveBtn {
     border: none;
     background: #228b2294;
     position: absolute;
@@ -31,7 +33,9 @@
     box-sizing: border-box;
     transition: 0.3s;
     outline: none;
-    border: 1px solid #e6e6e6;
+    border: 1px solid #c3cfd5;
+    color: #536171;
+    border-radius: 5px;
     padding: 8px;
     margin: 0 0 1vh 0;
     &:focus {

@@ -1,7 +1,10 @@
 .wrapper {
   min-height: 100vh;
   padding: 2vw;
-  .postWrapper {
-    display: grid;
-  }
+  border-radius: 5px;
+  background: white;
+  border: 1px solid #eaeaea;
+}
+.postWrapper {
+  display: grid;
 }

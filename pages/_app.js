@@ -1,5 +1,6 @@
 import { Provider } from "next-auth/client";
 import { ContextProvider } from "../context/global";
+import { GeistProvider, CssBaseline } from "@geist-ui/react";
 import "../global.scss";
 
 function MyApp({ Component, pageProps }) {
@@ -25,7 +26,9 @@ function MyApp({ Component, pageProps }) {
       session={pageProps.session}
     >
       <ContextProvider>
-        <Component {...pageProps} />
+        <GeistProvider>
+          <Component {...pageProps} />
+        </GeistProvider>
       </ContextProvider>
     </Provider>
   );

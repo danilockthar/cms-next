@@ -1,0 +1,100 @@
+.menumodal {
+  width: 15vw;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  height: fit-content;
+  background: white;
+  top: 8vh;
+  right: 0;
+  position: absolute;
+  a {
+    font-family: "Inter", sans-serif;
+    position: relative;
+    text-decoration: none;
+    color: #666;
+    font-size: 13px;
+    padding: 10px 22px;
+    outline: none;
+    user-select: none;
+    border-bottom: 1px solid #eaeaea;
+    &:hover {
+      background: #efefefb3;
+    }
+  }
+}
+picture {
+  height: 8vh;
+  display: flex;
+  align-items: center;
+  h1 {
+    font-family: "Inter", sans-serif;
+  }
+  .logo {
+    width: 6vw;
+  }
+}
+.lowHeader {
+  height: 9vh;
+  display: grid;
+  justify-content: start;
+}
+
+.profileImage {
+  cursor: pointer;
+  width: 2vw;
+  position: relative;
+  height: 2vw;
+  background: #333;
+  border-radius: 50%;
+  justify-self: end;
+}
+.menu {
+  width: fit-content;
+  transition: 0.3s;
+  grid-auto-flow: column;
+  display: grid;
+  align-items: center;
+  .menuTagActive {
+    color: black;
+    &::before {
+      content: "";
+      display: block;
+      position: absolute;
+      height: 0;
+      left: 9px;
+      z-index: 12;
+      right: 9px;
+      bottom: 0.2vh;
+      border-bottom: 2.5px solid;
+    }
+  }
+  a {
+    align-content: center;
+    text-decoration: none;
+    font-family: "Inter", sans-serif;
+    position: relative;
+    color: #666;
+    cursor: pointer;
+    height: 9vh;
+    padding: 0 14px;
+    font-size: 14px;
+    display: grid;
+    font-weight: 400;
+    transition: 0.3s;
+    &:hover {
+      color: black;
+    }
+    &::before {
+      content: "";
+      display: block;
+      position: absolute;
+      height: 0;
+      left: 9px;
+      z-index: 12;
+      right: 9px;
+      bottom: 0;
+      border-bottom: 2.5px solid transparent;
+    }
+  }
+}
